@@ -1,0 +1,3 @@
+[submodule "mp1"]
+	path = mp1
+	url = git@github.com:jacobkingery/elecanisms_mp1.git
