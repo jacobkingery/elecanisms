@@ -42,3 +42,9 @@ class hellousb:
         except usb.core.USBError:
             print "Could not send PRINT_VALS vendor request."
 
+myUSB = hellousb()
+myUSB.hello()
+myUSB.set_vals(2, 4)
+print myUSB.get_vals()
+myUSB.print_vals()
+myUSB.close()
