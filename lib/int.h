@@ -1,5 +1,5 @@
 /*
-** Copyright (c) 2013, Bradley A. Minch
+** Copyright (c) 2016, Evan Dorsky
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -23,44 +23,31 @@
 ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 ** POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#ifndef _INT_H_
+#define _INT_H_
 
 #include <stdint.h>
+#include "pin.h"
 
-#define init_clock()    CLKDIV = 0x0100     // RCDIV = 001 (4MHz, div2), 
-                                            // CPDIV = 00 (FOSC = 32MHz, FCY = 16MHz)
+void init_int(void);
 
-#define FCY     16e6
-#define TCY     62.5e-9
+typedef struct _INT {
+    uint16_t *IFSn;
+    uint16_t *IECn;
+    WORD *RPINRn;
+    uint8_t rpinshift;
+    uint8_t flagbit;
+    uint8_t intconbit;
+    void (*isr)(struct _INT *self);
+    _PIN *pin;
+} _INT;
 
-#ifndef NULL
-#define NULL 0
-#endif
+extern _INT int1, int2, int3, int4;
 
-#define peek(addr)              *(addr)
-#define poke(addr, val)         *(addr) = val
-#define bitread(addr, bit)      (((*(addr))&(1<<bit)) ? 1:0)
-#define bitset(addr, bit)       *(addr) |= 1<<bit
-#define bitclear(addr, bit)     *(addr) &= ~(1<<bit)
-#define bitflip(addr, bit)      *(addr) ^= 1<<bit
-
-#define disable_interrupts()    __asm__ volatile("disi #0x3FFF")
-#define enable_interrupts()     DISICNT = 0
-
-typedef union {
-    int16_t i;
-    uint16_t w;
-    uint8_t b[2];
-} WORD;
-
-typedef union {
-    int32_t l;
-    uint32_t ul;
-    uint16_t w[2];
-    uint8_t b[4];
-} WORD32;
-
-uint8_t parity(uint16_t v);
+void int_init(_INT *self, uint16_t *IFSn, uint16_t *IECn, WORD *RPINRn, uint8_t rpinshift, uint8_t flagbit, uint8_t intconbit);
+void int_lower(_INT *self);
+void int_enableInterrupt(_INT *self);
+void int_disableInterrupt(_INT *self);
+void int_attach(_INT *self, _PIN *pin, uint8_t edge, void (*callback)(_INT *self));
 
 #endif

@@ -46,9 +46,11 @@ void __putc_buffer(_UART *self, uint8_t ch) {
     while (self->TXbuffer.count==self->TXbuffer.length) {}  // Wait until TX 
                                                             // buffer is not 
                                                             // full
+    disable_interrupts();
     self->TXbuffer.data[self->TXbuffer.tail] = ch;
     self->TXbuffer.tail = (self->TXbuffer.tail+1)%(self->TXbuffer.length);
     self->TXbuffer.count++;
+    enable_interrupts();
     if (self->TXbuffer.count>=self->TXthreshold)    // If TX buffer is full 
         bitset(self->UxSTA, 10);                    // enough, enable data
                                                     // transmission
@@ -61,9 +63,11 @@ void __serviceTxInterrupt(_UART *self) {
     if (self->TXbuffer.count==0)        // If nothing left in TX buffer, 
         bitclear(self->UxSTA, 10);      // disable data transmission
     while ((bitread(self->UxSTA, 9)==0) && (self->TXbuffer.count!=0)) {
+        disable_interrupts();
         ch = self->TXbuffer.data[self->TXbuffer.head];
         self->TXbuffer.head = (self->TXbuffer.head+1)%(self->TXbuffer.length);
         self->TXbuffer.count--;
+        enable_interrupts();
         *(self->UxTXREG) = (uint16_t)ch;
     }
 }
@@ -72,9 +76,11 @@ uint8_t __getc_buffer(_UART *self) {
     uint8_t ch;
 
     while (self->RXbuffer.count==0) {}  // Wait until RX buffer is not empty
+    disable_interrupts();
     ch = self->RXbuffer.data[self->RXbuffer.head];
     self->RXbuffer.head = (self->RXbuffer.head+1)%(self->RXbuffer.length);
     self->RXbuffer.count--;
+    enable_interrupts();
     return ch;
 }
 
@@ -82,9 +88,11 @@ void __serviceRxInterrupt(_UART *self) {
     bitclear(self->IFSy, self->UxRXIF); // Lower RX interrupt flag
     while ((bitread(self->UxSTA, 0)==1) && 
            (self->RXbuffer.count!=self->RXbuffer.length)) {
+        disable_interrupts();
         self->RXbuffer.data[self->RXbuffer.tail] = (uint8_t)(*(self->UxRXREG));
         self->RXbuffer.tail = (self->RXbuffer.tail+1)%(self->RXbuffer.length);
         self->RXbuffer.count++;
+        enable_interrupts();
     }
 }
 
