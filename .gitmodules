@@ -1,3 +1,9 @@
 [submodule "mp1"]
 	path = mp1
 	url = git@github.com:jacobkingery/elecanisms_mp1.git
+[submodule "mp2"]
+	path = mp2
+	url = git@github.com:jacobkingery/elecanisms_mp2.git
+[submodule "space_balls"]
+	path = space_balls
+	url = git@github.com:jacobkingery/space_balls.git
