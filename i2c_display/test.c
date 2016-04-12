@@ -31,6 +31,15 @@ void command_display(uint8_t addr, uint8_t cmd) {
     i2c_stop(&i2c1);
 }
 
+void init_display(uint8_t addr) {
+    // Turn on system oscillator
+    command_display(addr, 0x21);
+    // Set blinking to off, display to on
+    command_display(addr, 0x81);
+    // Set brightness to max
+    command_display(addr, 0xEF);
+}
+
 void write_display(uint8_t addr, uint16_t value, uint8_t colon) {
     addr = (addr << 1) | 0;     // Write mode
     i2c_start(&i2c1);
@@ -56,18 +65,16 @@ int16_t main(void) {
     init_i2c();
 
     // Initialize i2c interface
-    uint8_t i2c_addr = 0x70;
-    i2c_open(&i2c1, 1e5);
-    // Turn on system oscillator
-    command_display(i2c_addr, 0x21);
-    // Set blinking to off, display to on
-    command_display(i2c_addr, 0x81);
-    // Set brightness to max
-    command_display(i2c_addr, 0xEF);
+    i2c_open(&i2c1, 4e5);
+    uint8_t i2c_addr0 = 0x70;
+    uint8_t i2c_addr1 = 0x71;
+    init_display(i2c_addr0);
+    init_display(i2c_addr1);
 
     uint16_t number = 0;
     while (1) {
-        write_display(i2c_addr, number++, number % 1000 / 500);
+        write_display(i2c_addr0, 9999 - number, (9999 - number) % 1000 / 500);
+        write_display(i2c_addr1, number++, number % 1000 / 500);
         number = (number > 9999) ? 0 : number;
     }
 }
